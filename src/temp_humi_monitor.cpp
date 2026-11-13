@@ -1,10 +1,9 @@
 #include "temp_humi_monitor.h"
 DHT20 dht20;
 LiquidCrystal_I2C lcd(33,16,2);
-
-
 void temp_humi_monitor(void *pvParameters){
-
+    lcd.begin();         // Khởi tạo LCD
+    lcd.backlight();    // Bật đèn nền LCD
     Wire.begin(11, 12);
     Serial.begin(115200);
     dht20.begin();
@@ -32,7 +31,20 @@ void temp_humi_monitor(void *pvParameters){
         glob_humidity = humidity;
 
         // Print the results
+        lcd.clear(); // Xóa dữ liệu cũ trên màn hình
         
+        // Dòng 1: Hiển thị Nhiệt độ
+        lcd.setCursor(0, 0); // Đặt con trỏ ở cột 0, dòng 0
+        lcd.print("Temperature: ");
+        lcd.print(glob_temperature);
+        lcd.print("°C");
+
+        // Dòng 2: Hiển thị Độ ẩm
+        lcd.setCursor(0, 1); // Đặt con trỏ ở cột 0, dòng 1
+        lcd.print("Humidity: ");
+        lcd.print(glob_humidity);
+        lcd.print(" %");
+
         Serial.print("Humidity: ");
         Serial.print(humidity);
         Serial.print("%  Temperature: ");
