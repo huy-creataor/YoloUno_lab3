@@ -41,5 +41,5 @@ void temp_humi_monitor(void *pvParameters){
         
         vTaskDelay(5000);
     }
-    
 }
+
