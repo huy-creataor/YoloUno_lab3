@@ -9,42 +9,69 @@ void task_neopixel(void *pvParameters) {
     strip.clear();
     strip.show();
 
+    static bool yellow_toggle = false;
+
     while(1) {
-        if (glob_temperature < 20.0) {
-            // Nhỏ hơn 20 độ: Xanh dương
-            strip.setPixelColor(0, strip.Color(0, 0, 255)); 
+        // [BÀI TẬP 3]: Kiểm tra trạng thái lỗi (cảm biến trả về 0 hoặc âm)
+        if ((glob_temperature == 0.0f && glob_humidity == 0.0f) || 
+            (glob_temperature < 0.0f && glob_humidity < 0.0f)) {
+            
+            if (yellow_toggle) {
+                strip.setPixelColor(0, strip.Color(255, 255, 0)); 
+            } else {
+                strip.setPixelColor(0, strip.Color(0, 0, 0));    
+            }
+            yellow_toggle = !yellow_toggle; 
         } 
-        else if (glob_temperature >= 20.0 && glob_temperature < 28.0) {
-            // Từ 20 đến dưới 28 độ: Xanh lá
-            strip.setPixelColor(0, strip.Color(0, 255, 0)); 
-        } 
-        else if (glob_temperature >= 28.0) {
-            // Lớn hơn hoặc bằng 28 độ: Đỏ
-            strip.setPixelColor(0, strip.Color(255, 0, 0)); 
+        else {
+            // [BÀI TẬP 1]: Hoạt động bình thường theo nhiệt độ
+            yellow_toggle = false;
+
+            if (glob_temperature < 20.0) {
+                strip.setPixelColor(0, strip.Color(0, 0, 255)); // Xanh dương
+            } 
+            else if (glob_temperature >= 20.0 && glob_temperature < 28.0) {
+                strip.setPixelColor(0, strip.Color(0, 255, 0)); // Xanh lá
+            } 
+            else if (glob_temperature >= 28.0) {
+                strip.setPixelColor(0, strip.Color(255, 0, 0)); // Đỏ
+            }
         }
         
-        strip.show(); // Cập nhật màu ra đèn
-
-
-
-
-
-        // [THÀNH VIÊN 2 - BÀI TẬP 3]: Thêm logic nháy vàng nếu nhiệt độ và độ ẩm đều bằng 0 tại đây
-        
-        vTaskDelay(500); // Tốc độ cập nhật màu
+        strip.show();
+        vTaskDelay(500); 
     }
 }
 
 void task_led(void *pvParameters) {
-pinMode(GPIO_NUM_48, OUTPUT);
+    pinMode(GPIO_NUM_48, OUTPUT);
 
     while(1) {
-        // [THÀNH VIÊN 2 - BÀI TẬP 2]: Viết logic thay đổi tốc độ vTaskDelay theo glob_humidity tại đây
-        // [THÀNH VIÊN 2 - BÀI TẬP 3]: Thêm logic sáng liên tục nếu nhiệt độ và độ ẩm đều bằng 0 tại đây
+        // [BÀI TẬP 3]: Kiểm tra trạng thái lỗi (cảm biến trả về 0 hoặc âm)
+        if ((glob_temperature == 0.0f && glob_humidity == 0.0f) || 
+            (glob_temperature < 0.0f && glob_humidity < 0.0f)) {
+            
+            digitalWrite(GPIO_NUM_48, HIGH);
+            vTaskDelay(200);
+        } 
+        else {
+            // [BÀI TẬP 2]: Điều chỉnh tốc độ nhấp nháy LED theo độ ẩm (glob_humidity)
+            int delay_time = 500;
 
-        digitalWrite(GPIO_NUM_48, HIGH);
-        vTaskDelay(1000); // Thay thế 1000 bằng biến tốc độ của bạn
-        digitalWrite(GPIO_NUM_48, LOW);
-        vTaskDelay(1000); // Thay thế 1000 bằng biến tốc độ của bạn
+            if (glob_humidity < 40.0) {
+                delay_time = 1000; 
+            } 
+            else if (glob_humidity >= 40.0 && glob_humidity <= 60.0) {
+                delay_time = 500;  
+            } 
+            else if (glob_humidity > 60.0) {
+                delay_time = 250;  
+            }
+
+            digitalWrite(GPIO_NUM_48, HIGH);
+            vTaskDelay(delay_time);
+            digitalWrite(GPIO_NUM_48, LOW);
+            vTaskDelay(delay_time);
+        }
     }
 }
