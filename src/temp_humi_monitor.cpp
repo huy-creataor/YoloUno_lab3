@@ -10,7 +10,10 @@
 #define TEMP_VARIATION_THRESHOLD 2.0f  // Ngưỡng biến thiên nhiệt độ (°C)
 #define HUMI_VARIATION_THRESHOLD 5.0f  // Ngưỡng biến thiên độ ẩm (%)
 
-DHT20 dht20;
+#define DHTPIN 4       // Đổi thành chân GPIO bạn nối với cảm biến DHT11
+#define DHTTYPE DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(33, 16, 2);
 
 // Hàm sắp xếp tăng dần (dùng cho Median Filter - Bài tập 5)
@@ -31,7 +34,7 @@ void temp_humi_monitor(void *pvParameters) {
     lcd.backlight();     // Bật đèn nền LCD
     Wire.begin(11, 12);
     Serial.begin(115200);
-    dht20.begin();
+    dht.begin();
 
     while (1) {
         float tempSamples[NUM_SAMPLES];
@@ -40,9 +43,8 @@ void temp_humi_monitor(void *pvParameters) {
 
         // Lấy 5 mẫu dữ liệu, mỗi mẫu cách nhau 100ms
         for (int i = 0; i < NUM_SAMPLES; i++) {
-            dht20.read();
-            float t = dht20.getTemperature();
-            float h = dht20.getHumidity();
+            float t = dht.readTemperature();
+            float h = dht.readHumidity();
 
             if (isnan(t) || isnan(h)) {
                 readError = true;
